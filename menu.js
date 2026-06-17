@@ -158,7 +158,12 @@ async function tampilProdukDenganUlasan() {
       const [rows] = await db.query('SELECT * FROM produk WHERE id_produk = ?', [id]);
       produkList = rows;
     } else if (opsi === '3') {
-      const kat = rl.question('Masukkan Kategori: ');
+      // Tampilkan daftar kategori yang tersedia terlebih dahulu
+      const [kategoriList] = await db.query('SELECT DISTINCT kategori FROM produk');
+      console.log('\nKategori yang tersedia di database:');
+      kategoriList.forEach((k, i) => console.log(`  ${i + 1}. ${k.kategori}`));
+      
+      const kat = rl.question('\nMasukkan nama kategori: ');
       const [rows] = await db.query('SELECT * FROM produk WHERE kategori = ?', [kat]);
       produkList = rows;
     }
@@ -191,8 +196,8 @@ async function tampilProdukDenganUlasan() {
         const avgRating = (ulasanList.reduce((a, u) => a + u.rating, 0) / ulasanList.length).toFixed(1);
         console.log(`\n    Rating: ${avgRating}/5 (${ulasanList.length} ulasan)`);
         ulasanList.forEach(u => {
-          console.log(`   ┌─ ${u.id_pelanggan} | ⭐${u.rating}`);
-          console.log(`   └─ "${u.komentar}"`);
+          console.log(`    ┌─ ${u.id_pelanggan} | ⭐${u.rating}`);
+          console.log(`    └─ "${u.komentar}"`);
         });
       }
     }
@@ -260,27 +265,43 @@ async function updateProduk() {
   const [rows] = await db.query('SELECT * FROM produk WHERE id_produk = ?', [id]);
 
   if (rows.length === 0) {
-    console.log(' Produk tidak ditemukan');
+    console.log('Peringatan: Produk tidak ditemukan!');
     return;
   }
 
   const p = rows[0];
-  console.log('(Tekan Enter untuk tidak mengubah nilai)\n');
+  console.log('(Tekan Enter jika tidak ingin mengubah nilai data awal)\n');
 
-  const nama = rl.question(`Nama [${p.nama_produk}]   : `) || p.nama_produk;
-  const kat = rl.question(`Kategori [${p.kategori}]  : `) || p.kategori;
-  const harga = rl.question(`Harga [${p.harga}]        : `) || p.harga;
-  const stok = rl.question(`Stok [${p.stok}]          : `) || p.stok;
-  const status = rl.question(`Status [${p.status}]      : `) || p.status;
+  // Menyamakan posisi titik dua (sejajar vertikal)
+  const nama   = rl.question(`Nama [${p.nama_produk}]`.padEnd(30) + ' : ') || p.nama_produk;
+  const kat    = rl.question(`Kategori [${p.kategori}]`.padEnd(30) + ' : ') || p.kategori;
+  const hargaInput = rl.question(`Harga [${p.harga}]`.padEnd(30) + ' : ');
+  const stokInput  = rl.question(`Stok [${p.stok}]`.padEnd(30) + ' : ');
+  const status = rl.question(`Status [${p.status}]`.padEnd(30) + ' : ') || p.status;
+
+  const harga = hargaInput === '' ? p.harga : Number(hargaInput);
+  const stok  = stokInput === '' ? p.stok : Number(stokInput);
+
+  // Error handling jika input sama persis dengan data awal
+  if (
+    nama.toLowerCase() === p.nama_produk.toLowerCase() &&
+    kat.toLowerCase() === p.kategori.toLowerCase() &&
+    harga === p.harga &&
+    stok === p.stok &&
+    status.toLowerCase() === (p.status || '').toLowerCase()
+  ) {
+    console.log('\nGagal Update, tidak ada perubahan dilakukan.');
+    return;
+  }
 
   try {
     await db.query(
       'UPDATE produk SET nama_produk=?, kategori=?, harga=?, stok=?, status=? WHERE id_produk=?',
-      [nama, kat, Number(harga), Number(stok), status, id]
+      [nama, kat, harga, stok, status, id]
     );
-    console.log(' Produk berhasil diupdate!');
+    console.log('Produk berhasil diupdate!');
   } catch (err) {
-    console.error(' Gagal update:', err.message);
+    console.error('Gagal update:', err.message);
   }
 }
 
@@ -290,6 +311,15 @@ async function hapusProduk() {
   await tampilSemuaProduk();
 
   const id = rl.question('\nMasukkan ID Produk yang ingin dihapus: ');
+
+  // Validasi apakah ID produk benar-benar ada sebelum melakukan hapus
+  const [cekProduk] = await db.query('SELECT * FROM produk WHERE id_produk = ?', [id]);
+  
+  if (cekProduk.length === 0) {
+    console.log(`\nError: ID Produk "${id}" tidak ditemukan di database! Proses penghapusan dibatalkan.`);
+    return;
+  }
+
   const konfirmasi = rl.keyInYNStrict(`Yakin hapus produk ${id}?`);
 
   if (!konfirmasi) {
@@ -299,15 +329,15 @@ async function hapusProduk() {
 
   try {
     await db.query('DELETE FROM produk WHERE id_produk = ?', [id]);
-    await SpekProduk.findOneAndDelete({ id_produk: id }); // hapus juga di MongoDB
-    console.log(' Produk berhasil dihapus!');
+    await SpekProduk.findOneAndDelete({ id_produk: id }); // hapus juga di MongoDB jika ada
+    console.log('   Produk berhasil dihapus dari MySQL dan MongoDB!');
   } catch (err) {
-    console.error(' Gagal hapus:', err.message);
+    console.error('Gagal hapus:', err.message);
   }
 }
 
 // ══════════════════════════════════════════════════════════════
-//  MENU PELANGGAN (SQL)
+//  MENU PELANGGAN (SQL) 
 // ══════════════════════════════════════════════════════════════
 async function menuPelanggan() {
   console.log('\n── PELANGGAN ──');
@@ -322,55 +352,134 @@ async function menuPelanggan() {
 
   switch (pilih) {
     case '1': {
-      const [rows] = await db.query('SELECT * FROM pelanggan');
-      console.log('\n👤 DAFTAR PELANGGAN:');
-      rows.forEach(c => console.log(`[${c.id_pelanggan}] ${c.nama_pelanggan} | ${c.no_telepon} | ${c.alamat}`));
-      break;
-    }
-    case '2': {
-      const id = rl.question('ID Pelanggan: ');
-      const [rows] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
-      if (rows.length === 0) { console.log(' Tidak ditemukan'); break; }
-      const c = rows[0];
-      console.log(`\nNama    : ${c.nama_pelanggan}`);
-      console.log(`Telepon : ${c.no_telepon}`);
-      console.log(`Alamat  : ${c.alamat}`);
-      break;
-    }
-    case '3': {
-      const id_pelanggan = rl.question('ID Pelanggan : ');
-      const nama_pelanggan = rl.question('Nama         : ');
-      const alamat = rl.question('Alamat       : ');
-      const no_telepon = rl.question('No. Telepon  : ');
-      await db.query(
-        'INSERT INTO pelanggan VALUES (?, ?, ?, ?)',
-        [id_pelanggan, nama_pelanggan, alamat, no_telepon]
-      );
-      console.log('Pelanggan ditambahkan!');
-      break;
-    }
-    case '4': {
-      const id = rl.question('ID Pelanggan yang diupdate: ');
-      const [rows] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
-      if (rows.length === 0) { console.log(' Tidak ditemukan'); break; }
-      const c = rows[0];
-      const nama = rl.question(`Nama [${c.nama_pelanggan}]: `) || c.nama_pelanggan;
-      const alamat = rl.question(`Alamat [${c.alamat}]: `) || c.alamat;
-      const telp = rl.question(`Telepon [${c.no_telepon}]: `) || c.no_telepon;
-      await db.query('UPDATE pelanggan SET nama_pelanggan=?, alamat=?, no_telepon=? WHERE id_pelanggan=?',
-        [nama, alamat, telp, id]);
-      console.log('Pelanggan diupdate!');
-      break;
-    }
-    case '5': {
-      const id = rl.question('ID Pelanggan yang dihapus: ');
-      if (rl.keyInYNStrict(`Yakin hapus ${id}?`)) {
-        await db.query('DELETE FROM pelanggan WHERE id_pelanggan = ?', [id]);
-        console.log('Pelanggan dihapus!');
+      try {
+        const [rows] = await db.query('SELECT * FROM pelanggan');
+        console.log('\nDAFTAR PELANGGAN:');
+        console.log('─'.repeat(70));
+        rows.forEach(c => console.log(`[${c.id_pelanggan}] ${c.nama_pelanggan} | ${c.no_telepon} | ${c.alamat}`));
+        console.log('─'.repeat(70));
+        console.log(`Total: ${rows.length} pelanggan`);
+      } catch (err) {
+        console.error('Error:', err.message);
       }
       break;
     }
+    
+    case '2': {
+      const id = rl.question('Masukkan ID Pelanggan: ');
+      try {
+        const [rows] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
+        if (rows.length === 0) { 
+          console.log(`\nError: ID Pelanggan "${id}" tidak ditemukan!`); 
+          break; 
+        }
+        const c = rows[0];
+        console.log('\n── DETAIL PELANGGAN ──');
+        console.log(`Nama     : ${c.nama_pelanggan}`);
+        console.log(`Telepon  : ${c.no_telepon}`);
+        console.log(`Alamat   : ${c.alamat}`);
+      } catch (err) {
+        console.error('Error:', err.message);
+      }
+      break;
+    }
+    
+    case '3': {
+      console.log('\n TAMBAH PELANGGAN BARU');
+      const id_pelanggan = rl.question('ID Pelanggan (contoh C001) : ');
+      
+      try {
+        // Validasi Duplikat ID sebelum meminta input lainnya
+        const [cek] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id_pelanggan]);
+        if (cek.length > 0) {
+          console.log(`\nGagal Tambah: ID Pelanggan "${id_pelanggan}" sudah terdaftar di database!`);
+          break;
+        }
+
+        const nama_pelanggan = rl.question('Nama Pelanggan            : ');
+        const alamat         = rl.question('Alamat                    : ');
+        const no_telepon     = rl.question('No. Telepon               : ');
+
+        await db.query(
+          'INSERT INTO pelanggan (id_pelanggan, nama_pelanggan, alamat, no_telepon) VALUES (?, ?, ?, ?)',
+          [id_pelanggan, nama_pelanggan, alamat, no_telepon]
+        );
+        console.log('Pelanggan berhasil ditambahkan!');
+      } catch (err) {
+        console.error('Gagal menambahkan pelanggan:', err.message);
+      }
+      break;
+    }
+    
+    case '4': {
+      console.log('\n  UPDATE PELANGGAN');
+      const id = rl.question('Masukkan ID Pelanggan yang diupdate: ');
+      try {
+        const [rows] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
+        if (rows.length === 0) { 
+          console.log(`\nPeringatan: ID Pelanggan "${id}" tidak ditemukan!`); 
+          break; 
+        }
+        
+        const c = rows[0];
+        // Tambahkan teks peringatan enter yang seragam dengan produk
+        console.log('(Tekan Enter jika tidak ingin mengubah nilai data awal)\n');
+
+        const nama   = rl.question(`Nama [${c.nama_pelanggan || '-'}]`.padEnd(30) + ' : ') || c.nama_pelanggan;
+        const alamat = rl.question(`Alamat [${c.alamat || '-'}]`.padEnd(30) + ' : ') || c.alamat;
+        const telp   = rl.question(`Telepon [${c.no_telepon || '-'}]`.padEnd(30) + ' : ') || c.no_telepon;
+
+        // Validasi Case-Insensitive data sama persis
+        if (
+          nama.toLowerCase() === c.nama_pelanggan.toLowerCase() &&
+          alamat.toLowerCase() === c.alamat.toLowerCase() &&
+          telp === c.no_telepon
+        ) {
+          console.log('\nGagal Update, Tidak ada perubahan dilakukan.');
+          break;
+        }
+
+        await db.query(
+          'UPDATE pelanggan SET nama_pelanggan=?, alamat=?, no_telepon=? WHERE id_pelanggan=?',
+          [nama, alamat, telp, id]
+        );
+        console.log('   Pelanggan berhasil diupdate!');
+      } catch (err) {
+        console.error('Gagal update:', err.message);
+      }
+      break;
+    }
+    
+    case '5': {
+      console.log('\n  HAPUS PELANGGAN');
+      const id = rl.question('Masukkan ID Pelanggan yang ingin dihapus: ');
+      try {
+        // Peringatan jika ID pelanggan tidak ditemukan di database
+        const [cek] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
+        if (cek.length === 0) {
+          console.log(`\nError: ID Pelanggan "${id}" tidak ditemukan di database! Proses hapus dibatalkan.`);
+          break;
+        }
+
+        if (rl.keyInYNStrict(`Yakin hapus pelanggan dengan ID ${id}?`)) {
+          await db.query('DELETE FROM pelanggan WHERE id_pelanggan = ?', [id]);
+          console.log('   Pelanggan berhasil dihapus!');
+        } else {
+          console.log('   Penghapusan dibatalkan.');
+        }
+      } catch (err) {
+        // Jinakkan error code ER_ROW_IS_REFERENCED_2 (Foreign Key Constraint)
+        if (err.code === 'ER_ROW_IS_REFERENCED_2' || err.errno === 1451) {
+          console.log(`\nGagal Hapus: Pelanggan dengan ID "${id}" tidak bisa dihapus karena datanya masih terikat dengan transaksi di tabel Pesanan!`);
+        } else {
+          console.error('Gagal hapus:', err.message);
+        }
+      }
+      break;
+    }
+    
     case '0': menuUtama(); return;
+    default: console.log('Pilihan tidak valid');
   }
   menuPelanggan();
 }
