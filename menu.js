@@ -581,6 +581,11 @@ async function menuVoucher() {
     }
     case '2': {
       const id_voucher = rl.question('ID Voucher    : ');
+        const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id_voucher]);
+        if (cek.length > 0) {
+        console.log(`ID Voucher "${id_voucher}" sudah ada! Gunakan ID lain.`);
+       break;
+      }
       const kode_voucher = rl.question('Kode Voucher  : ');
       const diskon = rl.questionInt('Diskon (%)    : ');
       const masa_berlaku = rl.question('Masa Berlaku (YYYY-MM-DD): ');
