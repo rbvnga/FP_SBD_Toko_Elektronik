@@ -6,9 +6,14 @@ require('dotenv').config();
 // ─── Schema MongoDB ───────────────────────────────────────────
 const SpekProduk = mongoose.model('SpekProduk', new mongoose.Schema({
   id_produk: String,
-  spesifikasi: mongoose.Schema.Types.Mixed,
-  deskripsi: String,
-  gambar: [String],
+  supplier: [
+    {
+      nama_supplier: String,
+      kontak: String,
+      alamat: String
+    }
+  ],
+  spesifikasi: [mongoose.Schema.Types.Mixed]
 }, { collection: 'Spesifikasi_Produk' }));
 
 const Ulasan = mongoose.model('Ulasan', new mongoose.Schema({
@@ -200,12 +205,12 @@ async function tampilProdukDenganUlasan() {
 // ── Tambah Produk ──
 async function tambahProduk() {
   console.log('\n TAMBAH PRODUK BARU');
-  const id_produk    = rl.question('ID Produk (contoh P016)  : ');
-  const nama_produk  = rl.question('Nama Produk              : ');
-  const kategori     = rl.question('Kategori                 : ');
-  const harga        = rl.questionInt('Harga (angka)            : ');
-  const stok         = rl.questionInt('Stok                     : ');
-  const status       = rl.question('Status (aktif/nonaktif)  : ');
+  const id_produk = rl.question('ID Produk (contoh P016)  : ');
+  const nama_produk = rl.question('Nama Produk              : ');
+  const kategori = rl.question('Kategori                 : ');
+  const harga = rl.questionInt('Harga (angka)            : ');
+  const stok = rl.questionInt('Stok                     : ');
+  const status = rl.question('Status (aktif/nonaktif)  : ');
 
   try {
     await db.query(
@@ -217,14 +222,26 @@ async function tambahProduk() {
     // Tanya apakah mau tambah spek di MongoDB juga
     const tambahSpek = rl.keyInYNStrict('Tambah spesifikasi produk di MongoDB?');
     if (tambahSpek) {
-      const deskripsi = rl.question('Deskripsi produk : ');
-      const material  = rl.question('Material         : ');
-      const warna     = rl.question('Warna (pisah koma): ');
+      const supplier = {
+      nama_supplier: rl.question('Nama Supplier : '),
+      kontak: rl.question('Kontak        : '),
+      alamat: rl.question('Alamat        : ')
+      };
+
+      const input = rl.question(
+        'Masukkan spesifikasi (JSON): '
+      );
 
       const spek = new SpekProduk({
         id_produk,
-        deskripsi,
-        spesifikasi: { material, warna: warna.split(',').map(w => w.trim()) },
+
+        supplier: [
+          supplier
+        ],
+
+        spesifikasi: [
+          JSON.parse(input)
+        ]
       });
       await spek.save();
       console.log(' Spek produk disimpan di MongoDB!');
@@ -250,10 +267,10 @@ async function updateProduk() {
   const p = rows[0];
   console.log('(Tekan Enter untuk tidak mengubah nilai)\n');
 
-  const nama   = rl.question(`Nama [${p.nama_produk}]   : `) || p.nama_produk;
-  const kat    = rl.question(`Kategori [${p.kategori}]  : `) || p.kategori;
-  const harga  = rl.question(`Harga [${p.harga}]        : `) || p.harga;
-  const stok   = rl.question(`Stok [${p.stok}]          : `) || p.stok;
+  const nama = rl.question(`Nama [${p.nama_produk}]   : `) || p.nama_produk;
+  const kat = rl.question(`Kategori [${p.kategori}]  : `) || p.kategori;
+  const harga = rl.question(`Harga [${p.harga}]        : `) || p.harga;
+  const stok = rl.question(`Stok [${p.stok}]          : `) || p.stok;
   const status = rl.question(`Status [${p.status}]      : `) || p.status;
 
   try {
@@ -321,10 +338,10 @@ async function menuPelanggan() {
       break;
     }
     case '3': {
-      const id_pelanggan    = rl.question('ID Pelanggan : ');
-      const nama_pelanggan  = rl.question('Nama         : ');
-      const alamat          = rl.question('Alamat       : ');
-      const no_telepon      = rl.question('No. Telepon  : ');
+      const id_pelanggan = rl.question('ID Pelanggan : ');
+      const nama_pelanggan = rl.question('Nama         : ');
+      const alamat = rl.question('Alamat       : ');
+      const no_telepon = rl.question('No. Telepon  : ');
       await db.query(
         'INSERT INTO pelanggan VALUES (?, ?, ?, ?)',
         [id_pelanggan, nama_pelanggan, alamat, no_telepon]
@@ -337,9 +354,9 @@ async function menuPelanggan() {
       const [rows] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
       if (rows.length === 0) { console.log(' Tidak ditemukan'); break; }
       const c = rows[0];
-      const nama   = rl.question(`Nama [${c.nama_pelanggan}]: `) || c.nama_pelanggan;
+      const nama = rl.question(`Nama [${c.nama_pelanggan}]: `) || c.nama_pelanggan;
       const alamat = rl.question(`Alamat [${c.alamat}]: `) || c.alamat;
-      const telp   = rl.question(`Telepon [${c.no_telepon}]: `) || c.no_telepon;
+      const telp = rl.question(`Telepon [${c.no_telepon}]: `) || c.no_telepon;
       await db.query('UPDATE pelanggan SET nama_pelanggan=?, alamat=?, no_telepon=? WHERE id_pelanggan=?',
         [nama, alamat, telp, id]);
       console.log('Pelanggan diupdate!');
@@ -393,14 +410,13 @@ async function menuUlasan() {
       break;
     }
     case '3': {
-      const id_pesanan   = rl.question('ID Pesanan  : ');
       const id_pelanggan = rl.question('ID Pelanggan: ');
-      const id_produk    = rl.question('ID Produk   : ');
-      const rating       = rl.questionInt('Rating (1-5): ');
-      const komentar     = rl.question('Komentar    : ');
+      const id_produk = rl.question('ID Produk   : ');
+      const rating = rl.questionInt('Rating (1-5): ');
+      const komentar = rl.question('Komentar    : ');
 
       const ulasan = new Ulasan({
-        id_pesanan, id_pelanggan, id_produk,
+        id_pelanggan, id_produk,
         rating, komentar, tanggal: new Date()
       });
       await ulasan.save();
@@ -410,7 +426,7 @@ async function menuUlasan() {
     case '4': {
       const idDoc = rl.question('Masukkan _id ulasan yang diupdate: ');
       const komentar = rl.question('Komentar baru: ');
-      const rating   = rl.questionInt('Rating baru (1-5): ');
+      const rating = rl.questionInt('Rating baru (1-5): ');
       await Ulasan.findByIdAndUpdate(idDoc, { komentar, rating });
       console.log(' Ulasan diupdate!');
       break;
@@ -450,18 +466,21 @@ async function menuPesanan() {
       `);
       console.log('\n DAFTAR PESANAN:');
       rows.forEach(r => {
-        console.log(`[${r.id_pesanan}] ${r.nama_pelanggan} | Status: ${r.status_pesanan} | Total: Rp${Number(r.total_harga).toLocaleString('id-ID')} | ${r.tanggal_pesanan}`);
+        const tanggal = r.tanggal_pesanan
+          ? r.tanggal_pesanan.toLocaleDateString('sv-SE')
+          : '-';
+        console.log(`[${r.id_pesanan}] ${r.nama_pelanggan} | Status: ${r.status_pesanan} | Total: Rp${Number(r.total_harga).toLocaleString('id-ID')} | Tanggal: ${tanggal} | Jasa Kirim: ${r.jasa_kirim}`);
       });
       break;
     }
     case '2': {
-      const id_pesanan     = rl.question('ID Pesanan      : ');
-      const id_pelanggan   = rl.question('ID Pelanggan    : ');
-      const id_voucher     = rl.question('ID Voucher (kosongkan jika tidak ada): ') || null;
+      const id_pesanan = rl.question('ID Pesanan      : ');
+      const id_pelanggan = rl.question('ID Pelanggan    : ');
+      const id_voucher = rl.question('ID Voucher (kosongkan jika tidak ada): ') || null;
       const status_pesanan = rl.question('Status Pesanan  : ');
-      const total_harga    = rl.questionInt('Total Harga     : ');
-      const tanggal        = rl.question('Tanggal (YYYY-MM-DD): ');
-      const jasa_kirim     = rl.question('Jasa Kirim      : ');
+      const total_harga = rl.questionInt('Total Harga     : ');
+      const tanggal = rl.question('Tanggal (YYYY-MM-DD): ');
+      const jasa_kirim = rl.question('Jasa Kirim      : ');
 
       await db.query(
         'INSERT INTO pesanan VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -472,7 +491,10 @@ async function menuPesanan() {
     }
     case '3': {
       const id = rl.question('ID Pesanan: ');
-      const status = rl.question('Status baru (pending/proses/selesai/batal): ');
+      const [rows] = await db.query('SELECT status_pesanan FROM pesanan WHERE id_pesanan = ?', [id]);
+      if (rows.length === 0) { console.log(' Pesanan tidak ditemukan'); break; }
+      console.log(`Status saat ini: ${rows[0].status_pesanan}`);
+      const status = rl.question('Status baru (Selesai/Dikirim/Diproses/Dibatalkan): ');
       await db.query('UPDATE pesanan SET status_pesanan=? WHERE id_pesanan=?', [status, id]);
       console.log(' Status diupdate!');
       break;
@@ -494,23 +516,36 @@ async function menuPembayaran() {
   console.log('\n── PEMBAYARAN ──');
   console.log('1. Tampilkan Semua Pembayaran');
   console.log('2. Tambah Pembayaran');
-  console.log('3. Hapus Pembayaran');
+  console.log('3. Update Status Pembayaran');
+  console.log('4. Hapus Pembayaran');
   console.log('0. Kembali');
 
   const pilih = rl.question('\nPilih: ');
   switch (pilih) {
     case '1': {
       const [rows] = await db.query('SELECT * FROM pembayaran');
-      rows.forEach(r => console.log(`[${r.id_pembayaran}] Pesanan: ${r.id_pesanan} | ${r.metode} | Rp${Number(r.jumlah).toLocaleString('id-ID')} | ${r.status_bayar}`));
+      rows.forEach(r => {
+        const waktu = r.waktu_pembayaran
+          ? r.waktu_pembayaran.toLocaleString('sv-SE')
+          : '-';
+        console.log(`[${r.id_pembayaran}] Pesanan: ${r.id_pesanan} | Metode: ${r.metode} | Jumlah: Rp${Number(r.jumlah).toLocaleString('id-ID')} | Waktu: ${waktu} | Status: ${r.status_bayar}`);
+      });
       break;
     }
     case '2': {
-      const id_pembayaran     = rl.question('ID Pembayaran : ');
-      const id_pesanan        = rl.question('ID Pesanan    : ');
-      const metode            = rl.question('Metode (transfer/cod/ewallet): ');
-      const jumlah            = rl.questionInt('Jumlah        : ');
-      const waktu_pembayaran  = rl.question('Waktu (YYYY-MM-DD HH:MM:SS): ');
-      const status_bayar      = rl.question('Status (lunas/pending/gagal): ');
+      const id_pembayaran = rl.question('ID Pembayaran : ');
+      const id_pesanan = rl.question('ID Pesanan    : ');
+
+      const [cekPesanan] = await db.query('SELECT id_pesanan FROM pesanan WHERE id_pesanan = ?', [id_pesanan]);
+      if (cekPesanan.length === 0) {
+        console.log(` ID Pesanan ${id_pesanan} tidak ditemukan!`);
+        break;
+      }
+
+      const metode = rl.question('Metode        : ');
+      const jumlah = rl.questionInt('Jumlah        : ');
+      const waktu_pembayaran = rl.question('Waktu (YYYY-MM-DD HH:MM:SS): ');
+      const status_bayar = rl.question('Status (Lunas/Pending/Dikembalikan): ');
       await db.query(
         'INSERT INTO pembayaran VALUES (?, ?, ?, ?, ?, ?)',
         [id_pembayaran, id_pesanan, metode, jumlah, waktu_pembayaran, status_bayar]
@@ -519,6 +554,23 @@ async function menuPembayaran() {
       break;
     }
     case '3': {
+      const id = rl.question('ID Pembayaran yang diupdate: ');
+      const [rows] = await db.query('SELECT * FROM pembayaran WHERE id_pembayaran = ?', [id]);
+      if (rows.length === 0) { console.log(' Tidak ditemukan'); break; }
+      const p = rows[0];
+
+      const waktu = p.waktu_pembayaran?.toLocaleString('sv-SE') || '-';
+      console.log(`\n[${p.id_pembayaran}] Pesanan: ${p.id_pesanan} | Metode: ${p.metode} | Jumlah: Rp${Number(p.jumlah).toLocaleString('id-ID')} | Waktu: ${waktu}`);
+      console.log(`Status saat ini: ${p.status_bayar}\n`);
+      const status_bayar = rl.question('Status baru (Lunas/Pending/Dikembalikan): ') || p.status_bayar;
+      await db.query(
+        'UPDATE pembayaran SET status_bayar=? WHERE id_pembayaran=?',
+        [status_bayar, id]
+      );
+      console.log(' Status pembayaran berhasil diupdate!');
+      break;
+    }
+    case '4': {
       const id = rl.question('ID Pembayaran yang dihapus: ');
       await db.query('DELETE FROM pembayaran WHERE id_pembayaran = ?', [id]);
       console.log('Pembayaran dihapus!');
@@ -534,19 +586,25 @@ async function menuVoucher() {
   console.log('1. Tampilkan Semua Voucher');
   console.log('2. Tambah Voucher');
   console.log('3. Hapus Voucher');
+  console.log('4. Update Voucher');
   console.log('0. Kembali');
 
   const pilih = rl.question('\nPilih: ');
   switch (pilih) {
     case '1': {
       const [rows] = await db.query('SELECT * FROM voucher');
-      rows.forEach(r => console.log(`[${r.id_voucher}] ${r.kode_voucher} | Diskon: ${r.diskon}% | Berlaku: ${r.masa_berlaku}`));
+      rows.forEach(r => console.log(`[${r.id_voucher}] ${r.kode_voucher} | Diskon: ${r.diskon}% | Berlaku Sampai: ${r.masa_berlaku}`));
       break;
     }
     case '2': {
-      const id_voucher   = rl.question('ID Voucher    : ');
+      const id_voucher = rl.question('ID Voucher    : ');
+        const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id_voucher]);
+        if (cek.length > 0) {
+        console.log(`ID Voucher "${id_voucher}" sudah ada! Gunakan ID lain.`);
+       break;
+      }
       const kode_voucher = rl.question('Kode Voucher  : ');
-      const diskon       = rl.questionInt('Diskon (%)    : ');
+      const diskon = rl.questionInt('Diskon (%)    : ');
       const masa_berlaku = rl.question('Masa Berlaku (YYYY-MM-DD): ');
       await db.query('INSERT INTO voucher VALUES (?, ?, ?, ?)',
         [id_voucher, kode_voucher, diskon, masa_berlaku]);
@@ -555,8 +613,36 @@ async function menuVoucher() {
     }
     case '3': {
       const id = rl.question('ID Voucher yang dihapus: ');
+        const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id]);
+        if (cek.length === 0) {
+        console.log(`ID Voucher "${id}" tidak ditemukan!`);
+        break;
+        }
       await db.query('DELETE FROM voucher WHERE id_voucher = ?', [id]);
       console.log(' Voucher dihapus!');
+      break;
+    }
+    case '4': {
+      const id = rl.question('ID Voucher yang diupdate: ');
+      const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id]);
+      if (cek.length === 0) {
+        console.log(`ID Voucher "${id}" tidak ditemukan!`);
+        break;
+      }
+
+      const lama = cek[0];
+        // Input baru, kalau kosong pakai nilai lama
+      const kode_voucher = rl.question(`Kode Voucher baru [${lama.kode_voucher}]: `) || lama.kode_voucher;
+      const diskonInput = rl.question(`Diskon (%) baru [${lama.diskon}]: `);
+      const diskon = diskonInput === '' ? lama.diskon : parseInt(diskonInput);
+      const masaInput = rl.question(`Masa Berlaku baru (YYYY-MM-DD) [${lama.masa_berlaku}]: `);
+      const masa_berlaku = masaInput === '' ? lama.masa_berlaku : masaInput;
+
+      await db.query(
+        'UPDATE voucher SET kode_voucher = ?, diskon = ?, masa_berlaku = ? WHERE id_voucher = ?',
+        [kode_voucher, diskon, masa_berlaku, id]
+      );
+      console.log(' Voucher berhasil diupdate!');
       break;
     }
     case '0': menuUtama(); return;
@@ -589,10 +675,10 @@ async function menuItemPesanan() {
       break;
     }
     case '3': {
-      const id_item     = rl.question('ID Item Pesanan : ');
-      const id_pesanan  = rl.question('ID Pesanan      : ');
-      const id_produk   = rl.question('ID Produk       : ');
-      const jumlah      = rl.questionInt('Jumlah          : ');
+      const id_item = rl.question('ID Item Pesanan : ');
+      const id_pesanan = rl.question('ID Pesanan      : ');
+      const id_produk = rl.question('ID Produk       : ');
+      const jumlah = rl.questionInt('Jumlah          : ');
       const harga_satuan = rl.questionInt('Harga Satuan    : ');
       await db.query('INSERT INTO item_pesanan VALUES (?, ?, ?, ?, ?)',
         [id_item, id_pesanan, id_produk, jumlah, harga_satuan]);
@@ -616,13 +702,18 @@ async function menuSpekProduk() {
   console.log('2. Lihat Spek by ID Produk');
   console.log('3. Tambah Spek');
   console.log('4. Hapus Spek');
+  console.log('5. Update Spek');
   console.log('0. Kembali');
 
   const pilih = rl.question('\nPilih: ');
   switch (pilih) {
     case '1': {
       const data = await SpekProduk.find();
-      data.forEach(s => console.log(`[${s.id_produk}] ${s.deskripsi || '-'} | Spek: ${JSON.stringify(s.spesifikasi)}`));
+      data.forEach(s => 
+      console.log(
+        `[${s.id_produk}] Supplier: ${s.supplier?.[0]?.nama_supplier || '-'} | Spek: ${JSON.stringify(s.spesifikasi)}`
+        )
+      );
       break;
     }
     case '2': {
@@ -633,28 +724,100 @@ async function menuSpekProduk() {
       break;
     }
     case '3': {
-      const id_produk  = rl.question('ID Produk   : ');
-      const deskripsi  = rl.question('Deskripsi   : ');
-      const material   = rl.question('Material    : ');
-      const warna      = rl.question('Warna (pisah koma): ');
-      const berat      = rl.question('Berat (gram): ');
 
-      const spek = new SpekProduk({
-        id_produk, deskripsi,
-        spesifikasi: {
-          material,
-          warna: warna.split(',').map(w => w.trim()),
-          berat: berat + 'g'
-        }
-      });
-      await spek.save();
-      console.log('Spek disimpan di MongoDB!');
+      const id_produk = rl.question('ID Produk : ');
+
+      // CEK PRODUK ADA DI MYSQL
+      const [produk] = await db.query(
+        'SELECT * FROM produk WHERE id_produk=?',
+        [id_produk]
+      );
+
+      if(produk.length === 0){
+        console.log('Produk belum ada, tambah produk dulu!');
+        break;
+      }
+
+      const supplier = {
+        nama_supplier: rl.question('Nama Supplier : '),
+        kontak: rl.question('Kontak : '),
+        alamat: rl.question('Alamat : ')
+      };
+
+
+      const input = rl.question(
+        'Masukkan spesifikasi (JSON): '
+      );
+
+      try {
+
+        const spek = new SpekProduk({
+          id_produk,
+
+          supplier:[
+            supplier
+          ],
+
+          spesifikasi: [
+            JSON.parse(input)
+          ]
+
+        });
+
+
+        await spek.save();
+
+        console.log('Spek + Supplier berhasil disimpan!');
+
+      } catch(err) {
+
+        console.log('Format JSON salah!');
+
+      }
+
       break;
     }
     case '4': {
       const id = rl.question('ID Produk yang speknya dihapus: ');
       await SpekProduk.findOneAndDelete({ id_produk: id });
       console.log('Spek dihapus!');
+      break;
+    }
+    case '5': {
+
+    const id = rl.question('ID Produk: ');
+
+    const cek = await SpekProduk.findOne({
+      id_produk:id
+    });
+
+    if(!cek){
+      console.log('Spek belum ada, gunakan tambah spek dulu');
+      break;
+    }
+
+    const spekBaru = rl.question(
+      'Masukkan spesifikasi baru (format JSON): '
+    );
+
+    try {
+
+      const update = {
+        spesifikasi: JSON.parse(spekBaru)
+      };
+
+      await SpekProduk.findOneAndUpdate(
+        { id_produk: id },
+        update,
+        { returnDocument: 'after' }
+      );
+
+      console.log('Spek berhasil diupdate!');
+
+      }   catch(err) {
+        console.log('Format JSON salah');
+      }
+
       break;
     }
     case '0': menuUtama(); return;
