@@ -586,13 +586,14 @@ async function menuVoucher() {
   console.log('1. Tampilkan Semua Voucher');
   console.log('2. Tambah Voucher');
   console.log('3. Hapus Voucher');
+  console.log('4. Update Voucher');
   console.log('0. Kembali');
 
   const pilih = rl.question('\nPilih: ');
   switch (pilih) {
     case '1': {
       const [rows] = await db.query('SELECT * FROM voucher');
-      rows.forEach(r => console.log(`[${r.id_voucher}] ${r.kode_voucher} | Diskon: ${r.diskon}% | Berlaku: ${r.masa_berlaku}`));
+      rows.forEach(r => console.log(`[${r.id_voucher}] ${r.kode_voucher} | Diskon: ${r.diskon}% | Berlaku Sampai: ${r.masa_berlaku}`));
       break;
     }
     case '2': {
@@ -612,8 +613,36 @@ async function menuVoucher() {
     }
     case '3': {
       const id = rl.question('ID Voucher yang dihapus: ');
+        const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id]);
+        if (cek.length === 0) {
+        console.log(`ID Voucher "${id}" tidak ditemukan!`);
+        break;
+        }
       await db.query('DELETE FROM voucher WHERE id_voucher = ?', [id]);
       console.log(' Voucher dihapus!');
+      break;
+    }
+    case '4': {
+      const id = rl.question('ID Voucher yang diupdate: ');
+      const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id]);
+      if (cek.length === 0) {
+        console.log(`ID Voucher "${id}" tidak ditemukan!`);
+        break;
+      }
+
+      const lama = cek[0];
+        // Input baru, kalau kosong pakai nilai lama
+      const kode_voucher = rl.question(`Kode Voucher baru [${lama.kode_voucher}]: `) || lama.kode_voucher;
+      const diskonInput = rl.question(`Diskon (%) baru [${lama.diskon}]: `);
+      const diskon = diskonInput === '' ? lama.diskon : parseInt(diskonInput);
+      const masaInput = rl.question(`Masa Berlaku baru (YYYY-MM-DD) [${lama.masa_berlaku}]: `);
+      const masa_berlaku = masaInput === '' ? lama.masa_berlaku : masaInput;
+
+      await db.query(
+        'UPDATE voucher SET kode_voucher = ?, diskon = ?, masa_berlaku = ? WHERE id_voucher = ?',
+        [kode_voucher, diskon, masa_berlaku, id]
+      );
+      console.log(' Voucher berhasil diupdate!');
       break;
     }
     case '0': menuUtama(); return;
