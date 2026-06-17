@@ -576,7 +576,7 @@ async function menuVoucher() {
   switch (pilih) {
     case '1': {
       const [rows] = await db.query('SELECT * FROM voucher');
-      rows.forEach(r => console.log(`[${r.id_voucher}] ${r.kode_voucher} | Diskon: ${r.diskon}% | Berlaku: ${r.masa_berlaku}`));
+      rows.forEach(r => console.log(`[${r.id_voucher}] ${r.kode_voucher} | Diskon: ${r.diskon}% | Berlaku Sampai: ${r.masa_berlaku}`));
       break;
     }
     case '2': {
