@@ -3,7 +3,6 @@ const router = express.Router();
 const mongoose = require('mongoose');
 
 const ulasanSchema = new mongoose.Schema({
-  id_pesanan: String,
   id_pelanggan: String,
   id_produk: String,
   rating: Number,        // 1-5
