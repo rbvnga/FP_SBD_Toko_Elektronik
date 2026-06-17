@@ -12,9 +12,7 @@ const spekSchema = new mongoose.Schema({
       alamat: String
     }
   ],
-  spesifikasi: [
-    mongoose.Schema.Types.Mixed
-  ]
+  spesifikasi: mongoose.Schema.Types.Mixed
 }, { collection: 'Spesifikasi_Produk' }); // nama collection di MongoDB
 
 const SpekProduk = mongoose.model('SpekProduk', spekSchema);

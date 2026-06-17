@@ -6,9 +6,14 @@ require('dotenv').config();
 // ─── Schema MongoDB ───────────────────────────────────────────
 const SpekProduk = mongoose.model('SpekProduk', new mongoose.Schema({
   id_produk: String,
-  spesifikasi: mongoose.Schema.Types.Mixed,
-  deskripsi: String,
-  gambar: [String],
+  supplier: [
+    {
+      nama_supplier: String,
+      kontak: String,
+      alamat: String
+    }
+  ],
+  spesifikasi: [mongoose.Schema.Types.Mixed]
 }, { collection: 'Spesifikasi_Produk' }));
 
 const Ulasan = mongoose.model('Ulasan', new mongoose.Schema({
@@ -217,14 +222,26 @@ async function tambahProduk() {
     // Tanya apakah mau tambah spek di MongoDB juga
     const tambahSpek = rl.keyInYNStrict('Tambah spesifikasi produk di MongoDB?');
     if (tambahSpek) {
-      const deskripsi = rl.question('Deskripsi produk : ');
-      const material = rl.question('Material         : ');
-      const warna = rl.question('Warna (pisah koma): ');
+      const supplier = {
+      nama_supplier: rl.question('Nama Supplier : '),
+      kontak: rl.question('Kontak        : '),
+      alamat: rl.question('Alamat        : ')
+      };
+
+      const input = rl.question(
+        'Masukkan spesifikasi (JSON): '
+      );
 
       const spek = new SpekProduk({
         id_produk,
-        deskripsi,
-        spesifikasi: { material, warna: warna.split(',').map(w => w.trim()) },
+
+        supplier: [
+          supplier
+        ],
+
+        spesifikasi: [
+          JSON.parse(input)
+        ]
       });
       await spek.save();
       console.log(' Spek produk disimpan di MongoDB!');
@@ -663,7 +680,11 @@ async function menuSpekProduk() {
   switch (pilih) {
     case '1': {
       const data = await SpekProduk.find();
-      data.forEach(s => console.log(`[${s.id_produk}] ${s.deskripsi || '-'} | Spek: ${JSON.stringify(s.spesifikasi)}`));
+      data.forEach(s => 
+      console.log(
+        `[${s.id_produk}] Supplier: ${s.supplier?.[0]?.nama_supplier || '-'} | Spek: ${JSON.stringify(s.spesifikasi)}`
+        )
+      );
       break;
     }
     case '2': {
@@ -676,6 +697,17 @@ async function menuSpekProduk() {
     case '3': {
 
       const id_produk = rl.question('ID Produk : ');
+
+      // CEK PRODUK ADA DI MYSQL
+      const [produk] = await db.query(
+        'SELECT * FROM produk WHERE id_produk=?',
+        [id_produk]
+      );
+
+      if(produk.length === 0){
+        console.log('Produk belum ada, tambah produk dulu!');
+        break;
+      }
 
       const supplier = {
         nama_supplier: rl.question('Nama Supplier : '),
@@ -697,7 +729,7 @@ async function menuSpekProduk() {
             supplier
           ],
 
-          spesifikasi:[
+          spesifikasi: [
             JSON.parse(input)
           ]
 
@@ -726,6 +758,15 @@ async function menuSpekProduk() {
 
     const id = rl.question('ID Produk: ');
 
+    const cek = await SpekProduk.findOne({
+      id_produk:id
+    });
+
+    if(!cek){
+      console.log('Spek belum ada, gunakan tambah spek dulu');
+      break;
+    }
+
     const spekBaru = rl.question(
       'Masukkan spesifikasi baru (format JSON): '
     );
@@ -733,7 +774,7 @@ async function menuSpekProduk() {
     try {
 
       const update = {
-        spesifikasi: [JSON.parse(spekBaru)]
+        spesifikasi: JSON.parse(spekBaru)
       };
 
       await SpekProduk.findOneAndUpdate(
