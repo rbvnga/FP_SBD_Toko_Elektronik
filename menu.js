@@ -393,14 +393,13 @@ async function menuUlasan() {
       break;
     }
     case '3': {
-      const id_pesanan   = rl.question('ID Pesanan  : ');
       const id_pelanggan = rl.question('ID Pelanggan: ');
       const id_produk    = rl.question('ID Produk   : ');
       const rating       = rl.questionInt('Rating (1-5): ');
       const komentar     = rl.question('Komentar    : ');
 
       const ulasan = new Ulasan({
-        id_pesanan, id_pelanggan, id_produk,
+        id_pelanggan, id_produk,
         rating, komentar, tanggal: new Date()
       });
       await ulasan.save();
@@ -616,6 +615,7 @@ async function menuSpekProduk() {
   console.log('2. Lihat Spek by ID Produk');
   console.log('3. Tambah Spek');
   console.log('4. Hapus Spek');
+  console.log('5. Update Spek');
   console.log('0. Kembali');
 
   const pilih = rl.question('\nPilih: ');
@@ -633,28 +633,80 @@ async function menuSpekProduk() {
       break;
     }
     case '3': {
-      const id_produk  = rl.question('ID Produk   : ');
-      const deskripsi  = rl.question('Deskripsi   : ');
-      const material   = rl.question('Material    : ');
-      const warna      = rl.question('Warna (pisah koma): ');
-      const berat      = rl.question('Berat (gram): ');
 
-      const spek = new SpekProduk({
-        id_produk, deskripsi,
-        spesifikasi: {
-          material,
-          warna: warna.split(',').map(w => w.trim()),
-          berat: berat + 'g'
-        }
-      });
-      await spek.save();
-      console.log('Spek disimpan di MongoDB!');
+      const id_produk = rl.question('ID Produk : ');
+
+      const supplier = {
+        nama_supplier: rl.question('Nama Supplier : '),
+        kontak: rl.question('Kontak : '),
+        alamat: rl.question('Alamat : ')
+      };
+
+
+      const input = rl.question(
+        'Masukkan spesifikasi (JSON): '
+      );
+
+      try {
+
+        const spek = new SpekProduk({
+          id_produk,
+
+          supplier:[
+            supplier
+          ],
+
+          spesifikasi:[
+            JSON.parse(input)
+          ]
+
+        });
+
+
+        await spek.save();
+
+        console.log('Spek + Supplier berhasil disimpan!');
+
+      } catch(err) {
+
+        console.log('Format JSON salah!');
+
+      }
+
       break;
     }
     case '4': {
       const id = rl.question('ID Produk yang speknya dihapus: ');
       await SpekProduk.findOneAndDelete({ id_produk: id });
       console.log('Spek dihapus!');
+      break;
+    }
+    case '5': {
+
+    const id = rl.question('ID Produk: ');
+
+    const spekBaru = rl.question(
+      'Masukkan spesifikasi baru (format JSON): '
+    );
+
+    try {
+
+      const update = {
+        spesifikasi: [JSON.parse(spekBaru)]
+      };
+
+      await SpekProduk.findOneAndUpdate(
+        { id_produk: id },
+        update,
+        { returnDocument: 'after' }
+      );
+
+      console.log('Spek berhasil diupdate!');
+
+      }   catch(err) {
+        console.log('Format JSON salah');
+      }
+
       break;
     }
     case '0': menuUtama(); return;

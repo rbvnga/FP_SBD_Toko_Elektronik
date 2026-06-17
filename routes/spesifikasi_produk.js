@@ -5,16 +5,16 @@ const mongoose = require('mongoose');
 // Schema (sesuaikan dengan struktur collection kamu di Compass)
 const spekSchema = new mongoose.Schema({
   id_produk: String,
-  nama_produk: String,
-  spesifikasi: {
-    berat: String,
-    dimensi: String,
-    warna: [String],
-    material: String,
-    // tambah field lain sesuai data kamu
-  },
-  gambar: [String], // array URL gambar
-  deskripsi: String,
+  supplier: [
+    {
+      nama_supplier: String,
+      kontak: String,
+      alamat: String
+    }
+  ],
+  spesifikasi: [
+    mongoose.Schema.Types.Mixed
+  ]
 }, { collection: 'Spesifikasi_Produk' }); // nama collection di MongoDB
 
 const SpekProduk = mongoose.model('SpekProduk', spekSchema);
