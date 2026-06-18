@@ -143,7 +143,7 @@ async function tampilProdukPerKategori() {
 async function tampilProdukPerKategori() {
   try {
     const [kategoriList] = await db.query('SELECT DISTINCT kategori FROM produk');
-    
+
     console.log('\nKategori yang tersedia:');
     kategoriList.forEach((k, i) => console.log(`${i + 1}. ${k.kategori}`));
 
@@ -623,6 +623,10 @@ async function menuPesanan() {
     }
     case '2': {
       const id_pesanan = rl.question('ID Pesanan (Contoh: ORD001): ');
+      if (!/^ORD\d{3}$/.test(id_pesanan)) {
+        console.log(' Format ID Pesanan tidak valid! Contoh: ORD001');
+        break;
+      }
 
       const [existing] = await db.query('SELECT id_pesanan FROM pesanan WHERE id_pesanan = ?', [id_pesanan]);
       if (existing.length > 0) {
@@ -631,25 +635,55 @@ async function menuPesanan() {
       }
 
       const id_pelanggan = rl.question('ID Pelanggan (Contoh: C001): ');
+      if (!/^C\d{3}$/.test(id_pelanggan)) {
+        console.log(' Format ID Pelanggan tidak valid! Contoh: C001');
+        break;
+      }
+
       const [cekPelanggan] = await db.query('SELECT id_pelanggan FROM pelanggan WHERE id_pelanggan = ?', [id_pelanggan]);
       if (cekPelanggan.length === 0) {
         console.log(` ID Pelanggan "${id_pelanggan}" tidak ditemukan!`);
         break;
       }
 
+      const tanggal = rl.question('Tanggal (YYYY-MM-DD): ');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal) || isNaN(new Date(tanggal))) {
+        console.log(' Format tanggal tidak valid! Contoh: 2024-01-31');
+        break;
+      }
+
       const id_voucher = rl.question('ID Voucher (Contoh: V001, kosongkan jika tidak ada): ') || null;
       if (id_voucher !== null) {
-        const [cekVoucher] = await db.query('SELECT id_voucher FROM voucher WHERE id_voucher = ?', [id_voucher]);
+        if (!/^V\d{3}$/.test(id_voucher)) {
+          console.log(' Format ID Voucher tidak valid! Contoh: V001');
+          break;
+        }
+
+        const [cekVoucher] = await db.query('SELECT id_voucher, masa_berlaku FROM voucher WHERE id_voucher = ?', [id_voucher]);
         if (cekVoucher.length === 0) {
           console.log(` ID Voucher "${id_voucher}" tidak ditemukan!`);
+          break;
+        }
+
+        const masaBerlaku = new Date(cekVoucher[0].masa_berlaku);
+        const tanggalPesanan = new Date(tanggal);
+        if (masaBerlaku < tanggalPesanan) {
+          console.log(` Voucher "${id_voucher}" sudah tidak berlaku! Masa berlaku: ${masaBerlaku.toLocaleDateString('id-ID')}`);
           break;
         }
       }
 
       const status_pesanan = rl.question('Status Pesanan (Selesai/Dikirim/Diproses/Dibatalkan): ');
-      //const total_harga = rl.questionInt('Total Harga     : ');
-      const tanggal = rl.question('Tanggal (YYYY-MM-DD): ');
+      if (!['Selesai', 'Dikirim', 'Diproses', 'Dibatalkan'].includes(status_pesanan)) {
+        console.log(' Status tidak valid! Pilihan: Selesai/Dikirim/Diproses/Dibatalkan');
+        break;
+      }
+
       const jasa_kirim = rl.question('Jasa Kirim (JNE/J&T/SiCepat/Anteraja): ');
+      if (!['JNE', 'J&T', 'SiCepat', 'Anteraja'].includes(jasa_kirim)) {
+        console.log(' Jasa kirim tidak valid! Pilihan: JNE/J&T/SiCepat/Anteraja');
+        break;
+      }
 
       await db.query(
         'INSERT INTO pesanan VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -660,16 +694,35 @@ async function menuPesanan() {
     }
     case '3': {
       const id = rl.question('ID Pesanan (Contoh: ORD001): ');
+      if (!/^ORD\d{3}$/.test(id)) {
+        console.log(' Format ID Pesanan tidak valid! Contoh: ORD001');
+        break;
+      }
+
       const [rows] = await db.query('SELECT status_pesanan FROM pesanan WHERE id_pesanan = ?', [id]);
       if (rows.length === 0) { console.log(' Pesanan tidak ditemukan'); break; }
+
       console.log(`Status saat ini: ${rows[0].status_pesanan}`);
       const status = rl.question('Status baru (Selesai/Dikirim/Diproses/Dibatalkan): ');
+      if (!['Selesai', 'Dikirim', 'Diproses', 'Dibatalkan'].includes(status)) {
+        console.log(' Status tidak valid! Pilihan: Selesai/Dikirim/Diproses/Dibatalkan');
+        break;
+      }
+
       await db.query('UPDATE pesanan SET status_pesanan=? WHERE id_pesanan=?', [status, id]);
       console.log(' Status diupdate!');
       break;
     }
     case '4': {
       const id = rl.question('ID Pesanan yang dihapus (Contoh: ORD001): ');
+      if (!/^ORD\d{3}$/.test(id)) {
+        console.log(' Format ID Pesanan tidak valid! Contoh: ORD001');
+        break;
+      }
+
+      const [rows] = await db.query('SELECT id_pesanan FROM pesanan WHERE id_pesanan = ?', [id]);
+      if (rows.length === 0) { console.log(' Pesanan tidak ditemukan'); break; }
+
       if (rl.keyInYNStrict(`Yakin hapus pesanan ${id}?`)) {
         await db.query('DELETE FROM pesanan WHERE id_pesanan = ?', [id]);
         console.log(' Pesanan dihapus!');
@@ -702,8 +755,11 @@ async function menuPembayaran() {
       break;
     }
     case '2': {
-      const id_pembayaran = rl.question('ID Pembayaran (PAY001): ');
-
+      const id_pembayaran = rl.question('ID Pembayaran (Contoh: PAY001): ');
+      if (!/^PAY\d{3}$/.test(id_pembayaran)) {
+        console.log(' Format ID Pembayaran tidak valid! Contoh: PAY001');
+        break;
+      }
 
       const [existing] = await db.query('SELECT id_pembayaran FROM pembayaran WHERE id_pembayaran = ?', [id_pembayaran]);
       if (existing.length > 0) {
@@ -712,16 +768,35 @@ async function menuPembayaran() {
       }
 
       const id_pesanan = rl.question('ID Pesanan (Contoh: ORD001): ');
+      if (!/^ORD\d{3}$/.test(id_pesanan)) {
+        console.log(' Format ID Pesanan tidak valid! Contoh: ORD001');
+        break;
+      }
 
       const [cekPesanan] = await db.query('SELECT id_pesanan FROM pesanan WHERE id_pesanan = ?', [id_pesanan]);
       if (cekPesanan.length === 0) {
-        console.log(` ID Pesanan ${id_pesanan} tidak ditemukan!`);
+        console.log(` ID Pesanan "${id_pesanan}" tidak ditemukan!`);
         break;
       }
 
       const metode = rl.question('Metode (Transfer Bank/QRIS/GoPay/OVO/Dana): ');
+      if (!['Transfer Bank', 'QRIS', 'GoPay', 'OVO', 'Dana'].includes(metode)) {
+        console.log(' Metode tidak valid! Pilihan: Transfer Bank/QRIS/GoPay/OVO/Dana');
+        break;
+      }
+
       const waktu_pembayaran = rl.question('Waktu (YYYY-MM-DD HH:MM:SS): ');
+      if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(waktu_pembayaran) || isNaN(new Date(waktu_pembayaran))) {
+        console.log(' Format waktu tidak valid! Contoh: 2024-01-31 14:30:00');
+        break;
+      }
+
       const status_bayar = rl.question('Status (Lunas/Pending/Dikembalikan): ');
+      if (!['Lunas', 'Pending', 'Dikembalikan'].includes(status_bayar)) {
+        console.log(' Status tidak valid! Pilihan: Lunas/Pending/Dikembalikan');
+        break;
+      }
+
       await db.query(
         'INSERT INTO pembayaran VALUES (?, ?, ?, ?, ?, ?)',
         [id_pembayaran, id_pesanan, metode, 0, waktu_pembayaran, status_bayar]
@@ -731,14 +806,25 @@ async function menuPembayaran() {
     }
     case '3': {
       const id = rl.question('ID Pembayaran yang diupdate (Contoh: PAY001): ');
+      if (!/^PAY\d{3}$/.test(id)) {
+        console.log(' Format ID Pembayaran tidak valid! Contoh: PAY001');
+        break;
+      }
+
       const [rows] = await db.query('SELECT * FROM pembayaran WHERE id_pembayaran = ?', [id]);
-      if (rows.length === 0) { console.log(' Tidak ditemukan'); break; }
+      if (rows.length === 0) { console.log(' Pembayaran tidak ditemukan'); break; }
       const p = rows[0];
 
       const waktu = p.waktu_pembayaran?.toLocaleString('sv-SE') || '-';
       console.log(`\n[${p.id_pembayaran}] Pesanan: ${p.id_pesanan} | Metode: ${p.metode} | Jumlah: Rp${Number(p.jumlah).toLocaleString('id-ID')} | Waktu: ${waktu}`);
       console.log(`Status saat ini: ${p.status_bayar}\n`);
+
       const status_bayar = rl.question('Status baru (Lunas/Pending/Dikembalikan): ') || p.status_bayar;
+      if (!['Lunas', 'Pending', 'Dikembalikan'].includes(status_bayar)) {
+        console.log(' Status tidak valid! Pilihan: Lunas/Pending/Dikembalikan');
+        break;
+      }
+
       await db.query(
         'UPDATE pembayaran SET status_bayar=? WHERE id_pembayaran=?',
         [status_bayar, id]
@@ -748,8 +834,18 @@ async function menuPembayaran() {
     }
     case '4': {
       const id = rl.question('ID Pembayaran yang dihapus (Contoh: PAY001): ');
-      await db.query('DELETE FROM pembayaran WHERE id_pembayaran = ?', [id]);
-      console.log('Pembayaran dihapus!');
+      if (!/^PAY\d{3}$/.test(id)) {
+        console.log(' Format ID Pembayaran tidak valid! Contoh: PAY001');
+        break;
+      }
+
+      const [rows] = await db.query('SELECT id_pembayaran FROM pembayaran WHERE id_pembayaran = ?', [id]);
+      if (rows.length === 0) { console.log(' Pembayaran tidak ditemukan'); break; }
+
+      if (rl.keyInYNStrict(`Yakin hapus pembayaran ${id}?`)) {
+        await db.query('DELETE FROM pembayaran WHERE id_pembayaran = ?', [id]);
+        console.log(' Pembayaran dihapus!');
+      }
       break;
     }
     case '0': menuUtama(); return;
