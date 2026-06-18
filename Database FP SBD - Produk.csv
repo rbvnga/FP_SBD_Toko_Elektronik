@@ -1,0 +1,22 @@
+PRODUK,,,,,
+id_produk,nama_produk,kategori,harga,stok,status
+P001,Samsung Galaxy S24 Ultra,Smartphone,17999000,25,Tersedia
+P002,iPhone 15 Pro Max,Smartphone,22999000,18,Tersedia
+P003,Xiaomi Redmi Note 13,Smartphone,2999000,60,Tersedia
+P004,ASUS ROG Phone 8,Smartphone,14499000,12,Tersedia
+P005,Sony WH-1000XM5,Headphone,5799000,30,Tersedia
+P006,JBL Flip 6,Speaker,1699000,45,Tersedia
+P007,Laptop ASUS Vivobook 16,Laptop,10499000,20,Tersedia
+P008,Laptop Lenovo IdeaPad 5,Laptop,9299000,15,Tersedia
+P009,MacBook Air M3,Laptop,18999000,8,Tersedia
+P010,Tablet Samsung Tab S9,Tablet,11999000,22,Tersedia
+P011,iPad Air 5,Tablet,10499000,17,Tersedia
+P012,Keyboard Logitech MX Keys,Aksesoris,1399000,50,Tersedia
+P013,Mouse Razer DeathAdder V3,Aksesoris,999000,55,Tersedia
+P014,Powerbank Anker 20000mAh,Aksesoris,699900,10,Tersedia
+P015,"Monitor LG 27"" 4K",Monitor,6999000,10,Tersedia
+P016,SSD Samsung 1TB,Storage,999000,80,Tersedia
+P017,Kamera Canon EOS R50,Kamera,10999000,9,Tersedia
+P018,Drone DJI Mini 4 Pro,Drone,14799000,6,Tersedia
+P019,Earbuds Samsung Buds2 Pro,Earphone,2799000,40,Tersedia
+P020,Smartwatch Apple Watch S9,Smartwatch,7499000,0,Tidak Tersedia

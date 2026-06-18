@@ -1,0 +1,17 @@
+PELANGGAN,,,
+id_pelanggan,nama_pelanggan,alamat,no_telepon
+C001,Budi Santoso,"Jl. Raya Darmo No.12, Surabaya",081234567890
+C002,Siti Rahayu,"Jl. Pemuda No.45, Jakarta Pusat",082345678901
+C003,Ahmad Fauzi,"Jl. Gajah Mada No.8, Semarang",083456789012
+C004,Dewi Kurniawati,"Jl. Sudirman No.22, Bandung",084567890123
+C005,Rizky Pratama,"Jl. Pahlawan No.3, Malang",085678901234
+C006,Nurul Hidayah,"Jl. Kertajaya No.88, Surabaya",086789012345
+C007,Eko Widodo,"Jl. Ahmad Yani No.17, Yogyakarta",087890123456
+C008,Fitri Handayani,"Jl. Diponegoro No.55, Medan",088901234567
+C009,Hendra Gunawan,"Jl. Asia Afrika No.10, Bandung",089012345678
+C010,Indah Permata,"Jl. Cendrawasih No.4, Makassar",081122334455
+C011,Joko Susilo,"Jl. Basuki Rahmat No.33, Surabaya",082233445566
+C012,Kartika Dewi,"Jl. Gatot Subroto No.7, Jakarta Selatan",083344556677
+C013,Luthfi Hakim,"Jl. Imam Bonjol No.19, Semarang",084455667788
+C014,Maya Anggraeni,"Jl. Veteran No.66, Malang",085566778899
+C015,Nanda Putra,"Jl. Pasar Baru No.11, Palembang",086677889900

@@ -1,0 +1,23 @@
+id_produk,id_pelanggan,rating,komentar,tanggal
+P001,C001,5,"Performa sangat cepat, kamera juga sangat memuaskan.",2026-06-05
+P013,C001,4,Nyaman digunakan untuk gaming dan pekerjaan sehari-hari.,2026-06-05
+P002,C002,5,Desain premium dan performa sangat stabil.,2026-06-06
+P003,C003,4,Harga terjangkau dengan spesifikasi yang cukup baik.,2026-06-06
+P016,C003,5,Kecepatan transfer data sangat tinggi dan responsif.,2026-06-06
+P004,C004,5,"Sangat cocok untuk gaming, performanya luar biasa.",2026-06-07
+P007,C005,4,Laptop nyaman digunakan untuk kuliah dan pekerjaan.,2026-06-07
+P012,C005,5,"Keyboard nyaman, tombol responsif dan baterai awet.",2026-06-07
+P005,C006,5,Noise cancelling sangat efektif dan kualitas suara jernih.,2026-06-08
+P008,C007,4,Performa baik dan desain ringan untuk mobilitas.,2026-06-08
+P005,C007,5,Audio detail dan nyaman digunakan dalam waktu lama.,2026-06-08
+P010,C008,5,Layar tajam dan performa multitasking sangat lancar.,2026-06-09
+P015,C009,5,Tampilan warna sangat bagus dan resolusi sangat tajam.,2026-06-09
+P018,C010,5,Mudah dikendalikan dan kualitas video sangat baik.,2026-06-10
+P016,C010,4,Penyimpanan cepat dan cocok untuk kebutuhan editing.,2026-06-10
+P009,C011,5,"Ringan, baterai awet, dan performa sangat memuaskan.",2026-06-11
+P013,C011,4,Akurat dan nyaman digunakan untuk bermain game.,2026-06-11
+P020,C012,5,Fitur kesehatan lengkap dan desain sangat elegan.,2026-06-12
+P009,C001,5,Performa chip M3 sangat cepat untuk produktivitas.,2026-06-12
+P006,C013,4,Suara cukup kencang dan cocok untuk aktivitas outdoor.,2026-06-13
+P007,C014,5,Build quality bagus dan performa stabil untuk kerja.,2026-06-13
+P016,C014,5,SSD cepat dan mudah dipasang pada perangkat.,2026-06-13
