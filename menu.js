@@ -139,6 +139,7 @@ async function tampilProdukPerKategori() {
   }
 }*/
 
+// yang lebih efisien dengan validasi nomor kategori
 async function tampilProdukPerKategori() {
   try {
     const [kategoriList] = await db.query('SELECT DISTINCT kategori FROM produk');
@@ -772,7 +773,7 @@ async function menuVoucher() {
       break;
     }
     case '2': {
-      const id_voucher = rl.question('ID Voucher    : ');
+      const id_voucher = rl.question('ID Voucher (Contoh V001): ');
       const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id_voucher]);
       if (cek.length > 0) {
         console.log(`ID Voucher "${id_voucher}" sudah ada! Gunakan ID lain.`);
@@ -787,7 +788,7 @@ async function menuVoucher() {
       break;
     }
     case '3': {
-      const id = rl.question('ID Voucher yang dihapus: ');
+      const id = rl.question('ID Voucher yang dihapus (Contoh: V001): ');
       const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id]);
       if (cek.length === 0) {
         console.log(`ID Voucher "${id}" tidak ditemukan!`);
@@ -798,7 +799,7 @@ async function menuVoucher() {
       break;
     }
     case '4': {
-      const id = rl.question('ID Voucher yang diupdate: ');
+      const id = rl.question('ID Voucher yang diupdate (Contoh: V001): ');
       const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id]);
       if (cek.length === 0) {
         console.log(`ID Voucher "${id}" tidak ditemukan!`);
