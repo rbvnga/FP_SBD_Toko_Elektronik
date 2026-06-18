@@ -823,9 +823,8 @@ async function menuItemPesanan() {
       const id_pesanan = rl.question('ID Pesanan (Contoh ORD001): ');
       const id_produk = rl.question('ID Produk (Contoh P001): ');
       const jumlah = rl.questionInt('Jumlah          : ');
-      const harga_satuan = rl.questionInt('Harga Satuan    : ');
       await db.query('INSERT INTO item_pesanan VALUES (?, ?, ?, ?, ?)',
-        [id_item, id_pesanan, id_produk, jumlah, harga_satuan]);
+        [id_item, id_pesanan, id_produk, jumlah, 0]);
       console.log(' Item pesanan ditambahkan!');
       break;
     }
