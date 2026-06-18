@@ -162,7 +162,7 @@ async function tampilProdukDenganUlasan() {
       const [kategoriList] = await db.query('SELECT DISTINCT kategori FROM produk');
       console.log('\nKategori yang tersedia di database:');
       kategoriList.forEach((k, i) => console.log(`  ${i + 1}. ${k.kategori}`));
-      
+
       const kat = rl.question('\nMasukkan nama kategori: ');
       const [rows] = await db.query('SELECT * FROM produk WHERE kategori = ?', [kat]);
       produkList = rows;
@@ -228,9 +228,9 @@ async function tambahProduk() {
     const tambahSpek = rl.keyInYNStrict('Tambah spesifikasi produk di MongoDB?');
     if (tambahSpek) {
       const supplier = {
-      nama_supplier: rl.question('Nama Supplier : '),
-      kontak: rl.question('Kontak        : '),
-      alamat: rl.question('Alamat        : ')
+        nama_supplier: rl.question('Nama Supplier : '),
+        kontak: rl.question('Kontak        : '),
+        alamat: rl.question('Alamat        : ')
       };
 
       const input = rl.question(
@@ -273,14 +273,14 @@ async function updateProduk() {
   console.log('(Tekan Enter jika tidak ingin mengubah nilai data awal)\n');
 
   // Menyamakan posisi titik dua (sejajar vertikal)
-  const nama   = rl.question(`Nama [${p.nama_produk}]`.padEnd(30) + ' : ') || p.nama_produk;
-  const kat    = rl.question(`Kategori [${p.kategori}]`.padEnd(30) + ' : ') || p.kategori;
+  const nama = rl.question(`Nama [${p.nama_produk}]`.padEnd(30) + ' : ') || p.nama_produk;
+  const kat = rl.question(`Kategori [${p.kategori}]`.padEnd(30) + ' : ') || p.kategori;
   const hargaInput = rl.question(`Harga [${p.harga}]`.padEnd(30) + ' : ');
-  const stokInput  = rl.question(`Stok [${p.stok}]`.padEnd(30) + ' : ');
+  const stokInput = rl.question(`Stok [${p.stok}]`.padEnd(30) + ' : ');
   const status = rl.question(`Status [${p.status}]`.padEnd(30) + ' : ') || p.status;
 
   const harga = hargaInput === '' ? p.harga : Number(hargaInput);
-  const stok  = stokInput === '' ? p.stok : Number(stokInput);
+  const stok = stokInput === '' ? p.stok : Number(stokInput);
 
   // Error handling jika input sama persis dengan data awal
   if (
@@ -314,7 +314,7 @@ async function hapusProduk() {
 
   // Validasi apakah ID produk benar-benar ada sebelum melakukan hapus
   const [cekProduk] = await db.query('SELECT * FROM produk WHERE id_produk = ?', [id]);
-  
+
   if (cekProduk.length === 0) {
     console.log(`\nError: ID Produk "${id}" tidak ditemukan di database! Proses penghapusan dibatalkan.`);
     return;
@@ -364,14 +364,14 @@ async function menuPelanggan() {
       }
       break;
     }
-    
+
     case '2': {
       const id = rl.question('Masukkan ID Pelanggan: ');
       try {
         const [rows] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
-        if (rows.length === 0) { 
-          console.log(`\nError: ID Pelanggan "${id}" tidak ditemukan!`); 
-          break; 
+        if (rows.length === 0) {
+          console.log(`\nError: ID Pelanggan "${id}" tidak ditemukan!`);
+          break;
         }
         const c = rows[0];
         console.log('\n── DETAIL PELANGGAN ──');
@@ -383,11 +383,11 @@ async function menuPelanggan() {
       }
       break;
     }
-    
+
     case '3': {
       console.log('\n TAMBAH PELANGGAN BARU');
       const id_pelanggan = rl.question('ID Pelanggan (contoh C001) : ');
-      
+
       try {
         // Validasi Duplikat ID sebelum meminta input lainnya
         const [cek] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id_pelanggan]);
@@ -397,8 +397,8 @@ async function menuPelanggan() {
         }
 
         const nama_pelanggan = rl.question('Nama Pelanggan            : ');
-        const alamat         = rl.question('Alamat                    : ');
-        const no_telepon     = rl.question('No. Telepon               : ');
+        const alamat = rl.question('Alamat                    : ');
+        const no_telepon = rl.question('No. Telepon               : ');
 
         await db.query(
           'INSERT INTO pelanggan (id_pelanggan, nama_pelanggan, alamat, no_telepon) VALUES (?, ?, ?, ?)',
@@ -410,24 +410,24 @@ async function menuPelanggan() {
       }
       break;
     }
-    
+
     case '4': {
       console.log('\n  UPDATE PELANGGAN');
       const id = rl.question('Masukkan ID Pelanggan yang diupdate: ');
       try {
         const [rows] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
-        if (rows.length === 0) { 
-          console.log(`\nPeringatan: ID Pelanggan "${id}" tidak ditemukan!`); 
-          break; 
+        if (rows.length === 0) {
+          console.log(`\nPeringatan: ID Pelanggan "${id}" tidak ditemukan!`);
+          break;
         }
-        
+
         const c = rows[0];
         // Tambahkan teks peringatan enter yang seragam dengan produk
         console.log('(Tekan Enter jika tidak ingin mengubah nilai data awal)\n');
 
-        const nama   = rl.question(`Nama [${c.nama_pelanggan || '-'}]`.padEnd(30) + ' : ') || c.nama_pelanggan;
+        const nama = rl.question(`Nama [${c.nama_pelanggan || '-'}]`.padEnd(30) + ' : ') || c.nama_pelanggan;
         const alamat = rl.question(`Alamat [${c.alamat || '-'}]`.padEnd(30) + ' : ') || c.alamat;
-        const telp   = rl.question(`Telepon [${c.no_telepon || '-'}]`.padEnd(30) + ' : ') || c.no_telepon;
+        const telp = rl.question(`Telepon [${c.no_telepon || '-'}]`.padEnd(30) + ' : ') || c.no_telepon;
 
         // Validasi Case-Insensitive data sama persis
         if (
@@ -449,7 +449,7 @@ async function menuPelanggan() {
       }
       break;
     }
-    
+
     case '5': {
       console.log('\n  HAPUS PELANGGAN');
       const id = rl.question('Masukkan ID Pelanggan yang ingin dihapus: ');
@@ -477,7 +477,7 @@ async function menuPelanggan() {
       }
       break;
     }
-    
+
     case '0': menuUtama(); return;
     default: console.log('Pilihan tidak valid');
   }
@@ -584,6 +584,13 @@ async function menuPesanan() {
     }
     case '2': {
       const id_pesanan = rl.question('ID Pesanan      : ');
+
+      const [existing] = await db.query('SELECT id_pesanan FROM pesanan WHERE id_pesanan = ?', [id_pesanan]);
+      if (existing.length > 0) {
+        console.log(` Pesanan dengan ID "${id_pesanan}" sudah ada!`);
+        break;
+      }
+
       const id_pelanggan = rl.question('ID Pelanggan    : ');
       const id_voucher = rl.question('ID Voucher (kosongkan jika tidak ada): ') || null;
       const status_pesanan = rl.question('Status Pesanan  : ');
@@ -643,6 +650,14 @@ async function menuPembayaran() {
     }
     case '2': {
       const id_pembayaran = rl.question('ID Pembayaran : ');
+
+
+      const [existing] = await db.query('SELECT id_pembayaran FROM pembayaran WHERE id_pembayaran = ?', [id_pembayaran]);
+      if (existing.length > 0) {
+        console.log(` Pembayaran dengan ID "${id_pembayaran}" sudah ada!`);
+        break;
+      }
+
       const id_pesanan = rl.question('ID Pesanan    : ');
 
       const [cekPesanan] = await db.query('SELECT id_pesanan FROM pesanan WHERE id_pesanan = ?', [id_pesanan]);
@@ -707,10 +722,10 @@ async function menuVoucher() {
     }
     case '2': {
       const id_voucher = rl.question('ID Voucher    : ');
-        const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id_voucher]);
-        if (cek.length > 0) {
+      const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id_voucher]);
+      if (cek.length > 0) {
         console.log(`ID Voucher "${id_voucher}" sudah ada! Gunakan ID lain.`);
-       break;
+        break;
       }
       const kode_voucher = rl.question('Kode Voucher  : ');
       const diskon = rl.questionInt('Diskon (%)    : ');
@@ -722,11 +737,11 @@ async function menuVoucher() {
     }
     case '3': {
       const id = rl.question('ID Voucher yang dihapus: ');
-        const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id]);
-        if (cek.length === 0) {
+      const [cek] = await db.query('SELECT * FROM voucher WHERE id_voucher = ?', [id]);
+      if (cek.length === 0) {
         console.log(`ID Voucher "${id}" tidak ditemukan!`);
         break;
-        }
+      }
       await db.query('DELETE FROM voucher WHERE id_voucher = ?', [id]);
       console.log(' Voucher dihapus!');
       break;
@@ -740,7 +755,7 @@ async function menuVoucher() {
       }
 
       const lama = cek[0];
-        // Input baru, kalau kosong pakai nilai lama
+      // Input baru, kalau kosong pakai nilai lama
       const kode_voucher = rl.question(`Kode Voucher baru [${lama.kode_voucher}]: `) || lama.kode_voucher;
       const diskonInput = rl.question(`Diskon (%) baru [${lama.diskon}]: `);
       const diskon = diskonInput === '' ? lama.diskon : parseInt(diskonInput);
@@ -788,9 +803,9 @@ async function menuItemPesanan() {
       // tambah item pesanan
       const id_item = rl.question('ID Item Pesanan (Contoh IP001): ');
       const [cek] = await db.query('SELECT * FROM item_pesanan WHERE id_itemPesanan = ?', [id_item]);
-        if (cek.length > 0) {
+      if (cek.length > 0) {
         console.log(`ID Item Pesanan "${id_item}" sudah ada! Gunakan ID lain.`);
-       break;
+        break;
       }
       const id_pesanan = rl.question('ID Pesanan (Contoh ORD001): ');
       const id_produk = rl.question('ID Produk (Contoh P001): ');
@@ -810,20 +825,20 @@ async function menuItemPesanan() {
     case '5': {
       const id_item = rl.question('ID Item Pesanan yang diupdate: ');
       const [cek] = await db.query('SELECT * FROM item_pesanan WHERE id_itemPesanan = ?', [id_item]);
-        if (cek.length === 0) {
+      if (cek.length === 0) {
         console.log(`ID Item Pesanan "${id_item}" tidak ditemukan!`);
         break;
       }
       const jumlah = rl.questionInt('Jumlah baru       : ');
 
-  // Update hanya kolom jumlah
-    await db.query(
-    'UPDATE item_pesanan SET jumlah = ? WHERE id_itemPesanan = ?',
-    [jumlah, id_item]
-    );
-  console.log('Item pesanan berhasil diupdate!');
-  break;
-}
+      // Update hanya kolom jumlah
+      await db.query(
+        'UPDATE item_pesanan SET jumlah = ? WHERE id_itemPesanan = ?',
+        [jumlah, id_item]
+      );
+      console.log('Item pesanan berhasil diupdate!');
+      break;
+    }
     case '0': menuUtama(); return;
   }
   menuItemPesanan();
@@ -842,9 +857,9 @@ async function menuSpekProduk() {
   switch (pilih) {
     case '1': {
       const data = await SpekProduk.find();
-      data.forEach(s => 
-      console.log(
-        `[${s.id_produk}] Supplier: ${s.supplier?.[0]?.nama_supplier || '-'} | Spek: ${JSON.stringify(s.spesifikasi)}`
+      data.forEach(s =>
+        console.log(
+          `[${s.id_produk}] Supplier: ${s.supplier?.[0]?.nama_supplier || '-'} | Spek: ${JSON.stringify(s.spesifikasi)}`
         )
       );
       break;
@@ -866,7 +881,7 @@ async function menuSpekProduk() {
         [id_produk]
       );
 
-      if(produk.length === 0){
+      if (produk.length === 0) {
         console.log('Produk belum ada, tambah produk dulu!');
         break;
       }
@@ -887,7 +902,7 @@ async function menuSpekProduk() {
         const spek = new SpekProduk({
           id_produk,
 
-          supplier:[
+          supplier: [
             supplier
           ],
 
@@ -902,7 +917,7 @@ async function menuSpekProduk() {
 
         console.log('Spek + Supplier berhasil disimpan!');
 
-      } catch(err) {
+      } catch (err) {
 
         console.log('Format JSON salah!');
 
@@ -918,36 +933,36 @@ async function menuSpekProduk() {
     }
     case '5': {
 
-    const id = rl.question('ID Produk: ');
+      const id = rl.question('ID Produk: ');
 
-    const cek = await SpekProduk.findOne({
-      id_produk:id
-    });
+      const cek = await SpekProduk.findOne({
+        id_produk: id
+      });
 
-    if(!cek){
-      console.log('Spek belum ada, gunakan tambah spek dulu');
-      break;
-    }
+      if (!cek) {
+        console.log('Spek belum ada, gunakan tambah spek dulu');
+        break;
+      }
 
-    const spekBaru = rl.question(
-      'Masukkan spesifikasi baru (format JSON): '
-    );
-
-    try {
-
-      const update = {
-        spesifikasi: JSON.parse(spekBaru)
-      };
-
-      await SpekProduk.findOneAndUpdate(
-        { id_produk: id },
-        update,
-        { returnDocument: 'after' }
+      const spekBaru = rl.question(
+        'Masukkan spesifikasi baru (format JSON): '
       );
 
-      console.log('Spek berhasil diupdate!');
+      try {
 
-      }   catch(err) {
+        const update = {
+          spesifikasi: JSON.parse(spekBaru)
+        };
+
+        await SpekProduk.findOneAndUpdate(
+          { id_produk: id },
+          update,
+          { returnDocument: 'after' }
+        );
+
+        console.log('Spek berhasil diupdate!');
+
+      } catch (err) {
         console.log('Format JSON salah');
       }
 
