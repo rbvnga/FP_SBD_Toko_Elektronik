@@ -765,6 +765,7 @@ async function menuItemPesanan() {
   console.log('2. Tampilkan Item by ID Pesanan');
   console.log('3. Tambah Item Pesanan');
   console.log('4. Hapus Item Pesanan');
+  console.log('5. Update Item Pesanan');
   console.log('0. Kembali');
 
   const pilih = rl.question('\nPilih: ');
@@ -800,6 +801,24 @@ async function menuItemPesanan() {
       console.log('Item dihapus!');
       break;
     }
+    case '5': {
+      const id_item = rl.question('ID Item Pesanan yang diupdate: ');
+      const [cek] = await db.query('SELECT * FROM item_pesanan WHERE id_itemPesanan = ?', [id_item]);
+        if (cek.length === 0) {
+        console.log(`ID Item Pesanan "${id_item}" tidak ditemukan!`);
+        break;
+      }
+      const jumlah = rl.questionInt('Jumlah baru       : ');
+      const harga_satuan = rl.questionInt('Harga Satuan baru : ');
+
+  // Update hanya kolom jumlah dan harga_satuan
+    await db.query(
+    'UPDATE item_pesanan SET jumlah = ?, harga_satuan = ? WHERE id_itemPesanan = ?',
+    [jumlah, harga_satuan, id_item]
+    );
+  console.log('Item pesanan berhasil diupdate!');
+  break;
+}
     case '0': menuUtama(); return;
   }
   menuItemPesanan();
