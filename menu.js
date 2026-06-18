@@ -112,7 +112,7 @@ async function tampilSemuaProduk() {
     console.error('Error:', err.message);
   }
 }
-
+/*
 // ── Tampil Produk per Kategori ──
 async function tampilProdukPerKategori() {
   try {
@@ -136,6 +136,44 @@ async function tampilProdukPerKategori() {
     console.log('─'.repeat(70));
   } catch (err) {
     console.error('Error:', err.message);
+  }
+}*/
+
+async function tampilProdukPerKategori() {
+  try {
+    const [kategoriList] = await db.query('SELECT DISTINCT kategori FROM produk');
+    
+    console.log('\nKategori yang tersedia:');
+    kategoriList.forEach((k, i) => console.log(`${i + 1}. ${k.kategori}`));
+
+    const pilihNo = rl.questionInt('\nPilih nomor kategori: ');
+
+    // Validasi nomor yang diinput
+    if (pilihNo < 1 || pilihNo > kategoriList.length) {
+      console.log(' Nomor tidak valid!');
+      return;
+    }
+
+    // Ambil nama kategori berdasarkan nomor yang dipilih
+    const kategori = kategoriList[pilihNo - 1].kategori;
+
+    const [rows] = await db.query('SELECT * FROM produk WHERE kategori = ?', [kategori]);
+
+    if (rows.length === 0) {
+      console.log('Tidak ada produk di kategori tersebut');
+      return;
+    }
+
+    console.log(`\n PRODUK KATEGORI "${kategori}":`);
+    console.log('─'.repeat(70));
+    rows.forEach(p => {
+      console.log(`[${p.id_produk}] ${p.nama_produk} | Harga: Rp${Number(p.harga).toLocaleString('id-ID')} | Stok: ${p.stok}`);
+    });
+    console.log('─'.repeat(70));
+    console.log(`Total: ${rows.length} produk`);
+
+  } catch (err) {
+    console.error(' Error:', err.message);
   }
 }
 
@@ -214,8 +252,8 @@ async function tambahProduk() {
   const nama_produk = rl.question('Nama Produk: ');
   const kategori = rl.question('Kategori: ');
   const harga = rl.questionInt('Harga: ');
-  const stok = rl.questionInt('Stok                     : ');
-  const status = rl.question('Status (Tersedia/Tidak Tersedia)  : ');
+  const stok = rl.questionInt('Stok: ');
+  const status = rl.question('Status (Tersedia/Tidak Tersedia): ');
 
   try {
     await db.query(
@@ -413,7 +451,7 @@ async function menuPelanggan() {
 
     case '4': {
       console.log('\n  UPDATE PELANGGAN');
-      const id = rl.question('Masukkan ID Pelanggan yang diupdate: ');
+      const id = rl.question('Masukkan ID Pelanggan yang diupdate (Contoh C001): ');
       try {
         const [rows] = await db.query('SELECT * FROM pelanggan WHERE id_pelanggan = ?', [id]);
         if (rows.length === 0) {
@@ -510,7 +548,7 @@ async function menuUlasan() {
       break;
     }
     case '2': {
-      const id_produk = rl.question('ID Produk: ');
+      const id_produk = rl.question('ID Produk (Contoh: P001): ');
       const data = await Ulasan.find({ id_produk });
       if (data.length === 0) { console.log(' Belum ada ulasan'); break; }
       data.forEach(u => {
@@ -519,8 +557,8 @@ async function menuUlasan() {
       break;
     }
     case '3': {
-      const id_pelanggan = rl.question('ID Pelanggan: ');
-      const id_produk = rl.question('ID Produk   : ');
+      const id_pelanggan = rl.question('ID Pelanggan (Contoh: C001): ');
+      const id_produk = rl.question('ID Produk   (Contoh: P001): ');
       const rating = rl.questionInt('Rating (1-5): ');
       const komentar = rl.question('Komentar    : ');
 
@@ -630,7 +668,7 @@ async function menuPesanan() {
       break;
     }
     case '4': {
-      const id = rl.question('ID Pesanan yang dihapus: ');
+      const id = rl.question('ID Pesanan yang dihapus (Contoh: ORD001): ');
       if (rl.keyInYNStrict(`Yakin hapus pesanan ${id}?`)) {
         await db.query('DELETE FROM pesanan WHERE id_pesanan = ?', [id]);
         console.log(' Pesanan dihapus!');
@@ -877,7 +915,7 @@ async function menuSpekProduk() {
       break;
     }
     case '2': {
-      const id = rl.question('ID Produk: ');
+      const id = rl.question('ID Produk (Contoh: P001): ');
       const s = await SpekProduk.findOne({ id_produk: id });
       if (!s) { console.log(' Tidak ditemukan'); break; }
       console.log(JSON.stringify(s, null, 2));
@@ -885,7 +923,7 @@ async function menuSpekProduk() {
     }
     case '3': {
 
-      const id_produk = rl.question('ID Produk : ');
+      const id_produk = rl.question('ID Produk (Contoh: P001): ');
 
       // CEK PRODUK ADA DI MYSQL
       const [produk] = await db.query(
