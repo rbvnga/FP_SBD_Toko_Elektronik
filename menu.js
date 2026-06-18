@@ -210,12 +210,12 @@ async function tampilProdukDenganUlasan() {
 // ── Tambah Produk ──
 async function tambahProduk() {
   console.log('\n TAMBAH PRODUK BARU');
-  const id_produk = rl.question('ID Produk (contoh P016)  : ');
-  const nama_produk = rl.question('Nama Produk              : ');
-  const kategori = rl.question('Kategori                 : ');
-  const harga = rl.questionInt('Harga (angka)            : ');
+  const id_produk = rl.question('ID Produk (contoh P016) : ');
+  const nama_produk = rl.question('Nama Produk: ');
+  const kategori = rl.question('Kategori: ');
+  const harga = rl.questionInt('Harga: ');
   const stok = rl.questionInt('Stok                     : ');
-  const status = rl.question('Status (aktif/nonaktif)  : ');
+  const status = rl.question('Status (Tersedia/Tidak Tersedia)  : ');
 
   try {
     await db.query(
@@ -261,7 +261,7 @@ async function updateProduk() {
   console.log('\n  UPDATE PRODUK');
   await tampilSemuaProduk();
 
-  const id = rl.question('\nMasukkan ID Produk yang ingin diupdate: ');
+  const id = rl.question('\nMasukkan ID Produk yang ingin diupdate (Contoh P001): ');
   const [rows] = await db.query('SELECT * FROM produk WHERE id_produk = ?', [id]);
 
   if (rows.length === 0) {
@@ -310,7 +310,7 @@ async function hapusProduk() {
   console.log('\n  HAPUS PRODUK');
   await tampilSemuaProduk();
 
-  const id = rl.question('\nMasukkan ID Produk yang ingin dihapus: ');
+  const id = rl.question('\nMasukkan ID Produk yang ingin dihapus (Contoh P001): ');
 
   // Validasi apakah ID produk benar-benar ada sebelum melakukan hapus
   const [cekProduk] = await db.query('SELECT * FROM produk WHERE id_produk = ?', [id]);
