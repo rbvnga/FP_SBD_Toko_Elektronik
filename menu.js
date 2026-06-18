@@ -779,15 +779,21 @@ async function menuItemPesanan() {
       break;
     }
     case '2': {
-      const id_pesanan = rl.question('ID Pesanan: ');
+      const id_pesanan = rl.question('ID Pesanan (Contoh IP001): ');
       const [rows] = await db.query('SELECT * FROM item_pesanan WHERE id_pesanan = ?', [id_pesanan]);
       rows.forEach(r => console.log(`  - ${r.id_produk} | Qty: ${r.jumlah} | Rp${Number(r.harga_satuan).toLocaleString('id-ID')}`));
       break;
     }
     case '3': {
-      const id_item = rl.question('ID Item Pesanan : ');
-      const id_pesanan = rl.question('ID Pesanan      : ');
-      const id_produk = rl.question('ID Produk       : ');
+      // tambah item pesanan
+      const id_item = rl.question('ID Item Pesanan (Contoh IP001): ');
+      const [cek] = await db.query('SELECT * FROM item_pesanan WHERE id_itemPesanan = ?', [id_item]);
+        if (cek.length > 0) {
+        console.log(`ID Item Pesanan "${id_item}" sudah ada! Gunakan ID lain.`);
+       break;
+      }
+      const id_pesanan = rl.question('ID Pesanan (Contoh ORD001): ');
+      const id_produk = rl.question('ID Produk (Contoh P001): ');
       const jumlah = rl.questionInt('Jumlah          : ');
       const harga_satuan = rl.questionInt('Harga Satuan    : ');
       await db.query('INSERT INTO item_pesanan VALUES (?, ?, ?, ?, ?)',
@@ -809,12 +815,11 @@ async function menuItemPesanan() {
         break;
       }
       const jumlah = rl.questionInt('Jumlah baru       : ');
-      const harga_satuan = rl.questionInt('Harga Satuan baru : ');
 
-  // Update hanya kolom jumlah dan harga_satuan
+  // Update hanya kolom jumlah
     await db.query(
-    'UPDATE item_pesanan SET jumlah = ?, harga_satuan = ? WHERE id_itemPesanan = ?',
-    [jumlah, harga_satuan, id_item]
+    'UPDATE item_pesanan SET jumlah = ? WHERE id_itemPesanan = ?',
+    [jumlah, id_item]
     );
   console.log('Item pesanan berhasil diupdate!');
   break;
