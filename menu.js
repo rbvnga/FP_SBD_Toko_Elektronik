@@ -583,7 +583,7 @@ async function menuPesanan() {
       break;
     }
     case '2': {
-      const id_pesanan = rl.question('ID Pesanan      : ');
+      const id_pesanan = rl.question('ID Pesanan (Contoh: ORD001): ');
 
       const [existing] = await db.query('SELECT id_pesanan FROM pesanan WHERE id_pesanan = ?', [id_pesanan]);
       if (existing.length > 0) {
@@ -591,22 +591,36 @@ async function menuPesanan() {
         break;
       }
 
-      const id_pelanggan = rl.question('ID Pelanggan    : ');
-      const id_voucher = rl.question('ID Voucher (kosongkan jika tidak ada): ') || null;
-      const status_pesanan = rl.question('Status Pesanan  : ');
-      const total_harga = rl.questionInt('Total Harga     : ');
+      const id_pelanggan = rl.question('ID Pelanggan (Contoh: C001): ');
+      const [cekPelanggan] = await db.query('SELECT id_pelanggan FROM pelanggan WHERE id_pelanggan = ?', [id_pelanggan]);
+      if (cekPelanggan.length === 0) {
+        console.log(` ID Pelanggan "${id_pelanggan}" tidak ditemukan!`);
+        break;
+      }
+
+      const id_voucher = rl.question('ID Voucher (Contoh: V001, kosongkan jika tidak ada): ') || null;
+      if (id_voucher !== null) {
+        const [cekVoucher] = await db.query('SELECT id_voucher FROM voucher WHERE id_voucher = ?', [id_voucher]);
+        if (cekVoucher.length === 0) {
+          console.log(` ID Voucher "${id_voucher}" tidak ditemukan!`);
+          break;
+        }
+      }
+
+      const status_pesanan = rl.question('Status Pesanan (Selesai/Dikirim/Diproses/Dibatalkan): ');
+      //const total_harga = rl.questionInt('Total Harga     : ');
       const tanggal = rl.question('Tanggal (YYYY-MM-DD): ');
-      const jasa_kirim = rl.question('Jasa Kirim      : ');
+      const jasa_kirim = rl.question('Jasa Kirim (JNE/J&T/SiCepat/Anteraja): ');
 
       await db.query(
         'INSERT INTO pesanan VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [id_pesanan, id_pelanggan, id_voucher, status_pesanan, total_harga, tanggal, jasa_kirim]
+        [id_pesanan, id_pelanggan, id_voucher, status_pesanan, 0, tanggal, jasa_kirim]
       );
       console.log(' Pesanan ditambahkan!');
       break;
     }
     case '3': {
-      const id = rl.question('ID Pesanan: ');
+      const id = rl.question('ID Pesanan (Contoh: ORD001): ');
       const [rows] = await db.query('SELECT status_pesanan FROM pesanan WHERE id_pesanan = ?', [id]);
       if (rows.length === 0) { console.log(' Pesanan tidak ditemukan'); break; }
       console.log(`Status saat ini: ${rows[0].status_pesanan}`);
@@ -649,7 +663,7 @@ async function menuPembayaran() {
       break;
     }
     case '2': {
-      const id_pembayaran = rl.question('ID Pembayaran : ');
+      const id_pembayaran = rl.question('ID Pembayaran (PAY001): ');
 
 
       const [existing] = await db.query('SELECT id_pembayaran FROM pembayaran WHERE id_pembayaran = ?', [id_pembayaran]);
@@ -658,7 +672,7 @@ async function menuPembayaran() {
         break;
       }
 
-      const id_pesanan = rl.question('ID Pesanan    : ');
+      const id_pesanan = rl.question('ID Pesanan (Contoh: ORD001): ');
 
       const [cekPesanan] = await db.query('SELECT id_pesanan FROM pesanan WHERE id_pesanan = ?', [id_pesanan]);
       if (cekPesanan.length === 0) {
@@ -666,19 +680,18 @@ async function menuPembayaran() {
         break;
       }
 
-      const metode = rl.question('Metode        : ');
-      const jumlah = rl.questionInt('Jumlah        : ');
+      const metode = rl.question('Metode (Transfer Bank/QRIS/GoPay/OVO/Dana): ');
       const waktu_pembayaran = rl.question('Waktu (YYYY-MM-DD HH:MM:SS): ');
       const status_bayar = rl.question('Status (Lunas/Pending/Dikembalikan): ');
       await db.query(
         'INSERT INTO pembayaran VALUES (?, ?, ?, ?, ?, ?)',
-        [id_pembayaran, id_pesanan, metode, jumlah, waktu_pembayaran, status_bayar]
+        [id_pembayaran, id_pesanan, metode, 0, waktu_pembayaran, status_bayar]
       );
       console.log(' Pembayaran ditambahkan!');
       break;
     }
     case '3': {
-      const id = rl.question('ID Pembayaran yang diupdate: ');
+      const id = rl.question('ID Pembayaran yang diupdate (Contoh: PAY001): ');
       const [rows] = await db.query('SELECT * FROM pembayaran WHERE id_pembayaran = ?', [id]);
       if (rows.length === 0) { console.log(' Tidak ditemukan'); break; }
       const p = rows[0];
@@ -695,7 +708,7 @@ async function menuPembayaran() {
       break;
     }
     case '4': {
-      const id = rl.question('ID Pembayaran yang dihapus: ');
+      const id = rl.question('ID Pembayaran yang dihapus (Contoh: PAY001): ');
       await db.query('DELETE FROM pembayaran WHERE id_pembayaran = ?', [id]);
       console.log('Pembayaran dihapus!');
       break;
@@ -810,9 +823,8 @@ async function menuItemPesanan() {
       const id_pesanan = rl.question('ID Pesanan (Contoh ORD001): ');
       const id_produk = rl.question('ID Produk (Contoh P001): ');
       const jumlah = rl.questionInt('Jumlah          : ');
-      const harga_satuan = rl.questionInt('Harga Satuan    : ');
       await db.query('INSERT INTO item_pesanan VALUES (?, ?, ?, ?, ?)',
-        [id_item, id_pesanan, id_produk, jumlah, harga_satuan]);
+        [id_item, id_pesanan, id_produk, jumlah, 0]);
       console.log(' Item pesanan ditambahkan!');
       break;
     }
