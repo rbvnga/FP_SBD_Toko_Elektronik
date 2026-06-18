@@ -846,7 +846,7 @@ async function menuItemPesanan() {
       break;
     }
     case '2': {
-      const id_pesanan = rl.question('ID Pesanan (Contoh IP001): ');
+      const id_pesanan = rl.question('ID Pesanan (Contoh ORD001): ');
       const [rows] = await db.query('SELECT * FROM item_pesanan WHERE id_pesanan = ?', [id_pesanan]);
       rows.forEach(r => console.log(`  - ${r.id_produk} | Qty: ${r.jumlah} | Rp${Number(r.harga_satuan).toLocaleString('id-ID')}`));
       break;
